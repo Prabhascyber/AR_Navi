@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+</head>
+
+<body>
+
+<h2>Add Navigation Route</h2>
+
+Start:
+<input id="start"><br><br>
+
+Destination:
+<input id="dest"><br><br>
+
+<textarea id="points" rows="6" cols="30"
+placeholder="0,-1
+1,-2
+2,-3"></textarea>
+
+<br><br>
+
+<button onclick="saveRoute()">Save Route</button>
+
+<script>
+
+function saveRoute() {
+
+  const start = document.getElementById("start").value;
+  const dest = document.getElementById("dest").value;
+
+  const points =
+    document.getElementById("points").value
+    .split("\n")
+    .map(line => {
+      const [x,z] = line.split(",");
+      return {x:Number(x), z:Number(z)};
+    });
+
+  fetch("/save-route", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      key:`${start}-${dest}`,
+      route:points
+    })
+  })
+  .then(()=>alert("Route Saved ✅"));
+}
+
+</script>
+
+</body>
+</html>

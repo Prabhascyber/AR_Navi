@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Indoor Navigation</title>
+</head>
+
+<body>
+
+<h2>Select Destination</h2>
+
+<select id="destination">
+  <option value="lab">Lab</option>
+  <option value="office">Office</option>
+</select>
+
+<button onclick="startNav()">Start Navigation</button>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const start = params.get("start");
+
+function startNav() {
+  const dest =
+    document.getElementById("destination").value;
+
+  window.location.href =
+    `/ar.html?start=${start}&dest=${dest}`;
+}
+
+</script>
+
+</body>
+</html>

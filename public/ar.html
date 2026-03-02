@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AR Indoor Navigation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial;
+            background: black;
+        }
+
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            z-index: 2;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="info">AR Navigation — Point camera forward</div>
+
+<!-- THREE JS -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+
+<!-- GLTF LOADER -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
+
+<script>
+
+let scene, camera, renderer;
+let arrow;
+
+// ========================
+// INIT SCENE
+// ========================
+
+scene = new THREE.Scene();
+
+camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+);
+
+renderer = new THREE.WebGLRenderer({
+    alpha: true,
+    antialias: true
+});
+
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// ========================
+// LIGHTING (important for models)
+// ========================
+
+const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+scene.add(light);
+
+// ========================
+// LOAD ARROW MODEL
+// ========================
+
+const loader = new THREE.GLTFLoader();
+
+loader.load(
+    '/models/arrow/scene.gltf',
+
+    function (gltf) {
+
+        arrow = gltf.scene;
+
+        // Adjust size
+        arrow.scale.set(0.4, 0.4, 0.4);
+
+        // Place in front of user
+        arrow.position.set(0, 0, -2);
+
+        // Rotate if needed
+        arrow.rotation.x = Math.PI / 2;
+
+        scene.add(arrow);
+
+        console.log("Arrow Loaded Successfully ✅");
+    },
+
+    undefined,
+
+    function (error) {
+        console.error("Model loading error:", error);
+    }
+);
+
+// ========================
+// CAMERA ACCESS (AR VIEW)
+// ========================
+
+navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "environment" },
+    audio: false
+})
+.then(function(stream) {
+
+    const video = document.createElement("video");
+    video.srcObject = stream;
+    video.play();
+
+    const videoTexture = new THREE.VideoTexture(video);
+
+    scene.background = videoTexture;
+
+})
+.catch(function(err){
+    alert("Camera permission required!");
+    console.error(err);
+});
+
+// ========================
+// ANIMATION LOOP
+// ========================
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    // small rotation animation
+    if (arrow) {
+        arrow.rotation.z += 0.01;
+    }
+
+    renderer.render(scene, camera);
+}
+
+animate();
+
+// ========================
+// RESPONSIVE
+// ========================
+
+window.addEventListener('resize', () => {
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+});
+
+</script>
+
+</body>
+</html>
