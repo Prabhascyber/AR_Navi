@@ -8,8 +8,8 @@
         body {
             margin: 0;
             overflow: hidden;
-            font-family: Arial;
             background: black;
+            font-family: Arial;
         }
 
         #info {
@@ -18,7 +18,7 @@
             width: 100%;
             text-align: center;
             color: white;
-            z-index: 2;
+            z-index: 10;
             font-size: 18px;
         }
     </style>
@@ -28,20 +28,22 @@
 
 <div id="info">AR Navigation — Point camera forward</div>
 
-<!-- THREE JS -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<!-- ✅ MODULE SCRIPT (IMPORTANT CHANGE) -->
+<script type="module">
 
-<!-- GLTF LOADER -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
+// ============================
+// IMPORT THREE + GLTFLOADER
+// ============================
 
-<script>
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js';
 
-let scene, camera, renderer;
-let arrow;
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/GLTFLoader.js';
 
-// ========================
-// INIT SCENE
-// ========================
+let scene, camera, renderer, arrow;
+
+// ============================
+// SCENE
+// ============================
 
 scene = new THREE.Scene();
 
@@ -60,79 +62,74 @@ renderer = new THREE.WebGLRenderer({
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// ========================
-// LIGHTING (important for models)
-// ========================
+// ============================
+// LIGHT
+// ============================
 
 const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
 scene.add(light);
 
-// ========================
-// LOAD ARROW MODEL
-// ========================
+// ============================
+// LOAD GLTF MODEL
+// ============================
 
-const loader = new THREE.GLTFLoader();
+const loader = new GLTFLoader();
 
 loader.load(
-    '/models/arrow/scene.gltf',
+    './models/arrow/scene.gltf',   // ✅ path
 
-    function (gltf) {
+    (gltf) => {
 
         arrow = gltf.scene;
 
-        // Adjust size
         arrow.scale.set(0.4, 0.4, 0.4);
-
-        // Place in front of user
         arrow.position.set(0, 0, -2);
-
-        // Rotate if needed
         arrow.rotation.x = Math.PI / 2;
 
         scene.add(arrow);
 
-        console.log("Arrow Loaded Successfully ✅");
+        console.log("Arrow Loaded ✅");
     },
 
     undefined,
 
-    function (error) {
-        console.error("Model loading error:", error);
+    (error) => {
+        console.error("Model error:", error);
     }
 );
 
-// ========================
-// CAMERA ACCESS (AR VIEW)
-// ========================
+// ============================
+// CAMERA (AR BACKGROUND)
+// ============================
 
 navigator.mediaDevices.getUserMedia({
     video: { facingMode: "environment" },
     audio: false
 })
-.then(function(stream) {
+.then(stream => {
 
     const video = document.createElement("video");
     video.srcObject = stream;
+    video.setAttribute("playsinline", true);
     video.play();
 
-    const videoTexture = new THREE.VideoTexture(video);
-
-    scene.background = videoTexture;
+    const texture = new THREE.VideoTexture(video);
+    scene.background = texture;
 
 })
-.catch(function(err){
-    alert("Camera permission required!");
+.catch(err => {
+    alert("Camera permission required");
     console.error(err);
 });
 
-// ========================
-// ANIMATION LOOP
-// ========================
+// ============================
+// ANIMATION
+// ============================
 
 function animate() {
+
     requestAnimationFrame(animate);
 
-    // small rotation animation
     if (arrow) {
         arrow.rotation.z += 0.01;
     }
@@ -142,11 +139,11 @@ function animate() {
 
 animate();
 
-// ========================
+// ============================
 // RESPONSIVE
-// ========================
+// ============================
 
-window.addEventListener('resize', () => {
+window.addEventListener("resize", () => {
 
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
